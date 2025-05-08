@@ -14,11 +14,11 @@ const driversData = {
             name: "Lewis Hamilton",
             number: 44,
             times: [
-                0.000, // Times will be generated randomly at runtime
-                0.000,
-                0.000,
-                0.000,
-                0.000
+                1.000, // Times will be generated randomly at runtime
+                1.000,
+                1.000,
+                1.000,
+                1.000
             ]
         },
         {
@@ -71,11 +71,11 @@ const driversData = {
             name: "Max Verstappen",
             number: 1,
             times: [
-                0.000, // Times will be generated randomly at runtime
-                0.000,
-                0.000,
-                0.000,
-                0.000
+                1.000, // Times will be generated randomly at runtime
+                1.000,
+                1.000,
+                1.000,
+                1.000
             ]
         },
         {
@@ -142,14 +142,24 @@ const teamsData = [
 ];
 
 // Generate random lap times between 1:20.000 and 1:45.999
+// Returns 0 occasionally to represent DNF (Did Not Finish)
 function generateRandomTime() {
+    // 5% chance of DNF (Did Not Finish)
+    if (Math.random() < 0.05) {
+        return 0;
+    }
+    
     // Random time between 80 and 105.999 seconds
     const seconds = 80 + Math.random() * 25.999;
     return parseFloat(seconds.toFixed(3));
 }
 
-// Format time as minutes:seconds.milliseconds
+// Format time as minutes:seconds.milliseconds or "DNF"
 function formatTime(seconds) {
+    if (seconds === 0) {
+        return "DNF";
+    }
+    
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = (seconds % 60).toFixed(3).padStart(6, '0');
     return `${minutes}:${remainingSeconds}`;
@@ -162,31 +172,43 @@ function generateRaceData() {
         team.drivers.forEach(driver => {
             // Fill in random times for each race
             for (let i = 0; i < races.length; i++) {
-                // driver.times[i] = generateRandomTime();
+                //driver.times[i] = generateRandomTime();
             }
             
-            // Calculate total time for driver
-            driver.totalTime = driver.times.reduce((sum, time) => sum + time, 0);
+            // Calculate total time for driver (excluding DNFs)
+            driver.totalTime = driver.times.reduce((sum, time) => sum + (time > 0 ? time : 0), 0);
+            
+            // Count number of DNFs
+            driver.dnfCount = driver.times.filter(time => time === 0).length;
         });
         
         // Calculate team totals
         team.totalTime = team.drivers.reduce((sum, driver) => sum + driver.totalTime, 0);
+        team.dnfCount = team.drivers.reduce((sum, driver) => sum + driver.dnfCount, 0);
     });
     
-    // Find best times for each race and team
+    // Find best times for each race and team (ignoring DNFs)
     races.forEach((race, raceIndex) => {
         teamsData.forEach(team => {
-            let bestTime = Infinity;
-            team.drivers.forEach(driver => {
-                if (driver.times[raceIndex] < bestTime) {
-                    bestTime = driver.times[raceIndex];
-                }
-            });
+            // Get all valid times (non-zero) for this race
+            const validTimes = team.drivers
+                .map(driver => driver.times[raceIndex])
+                .filter(time => time > 0);
             
+            // Find the best time among valid times
+            const bestTime = validTimes.length > 0 ? Math.min(...validTimes) : null;
+            
+            // Mark best times
             team.drivers.forEach(driver => {
-                driver.bestTimes = driver.times.map((time, idx) => 
-                    time === team.drivers.reduce((min, d) => Math.min(min, d.times[idx]), Infinity)
-                );
+                if (!driver.bestTimes) {
+                    driver.bestTimes = new Array(races.length).fill(false);
+                }
+                
+                // A time is best only if it's valid and equals the best time
+                driver.bestTimes[raceIndex] = 
+                    driver.times[raceIndex] > 0 && 
+                    bestTime !== null && 
+                    driver.times[raceIndex] === bestTime;
             });
         });
     });
@@ -315,20 +337,22 @@ function createVisualization() {
         .append("g")
         .attr("transform", `translate(${margin.left},${margin.top})`);
     
-    // Prepare data for visualization
+    // Prepare data for visualization - filter out DNF times
     const chartData = [];
     teamsData.forEach(team => {
         team.drivers.forEach(driver => {
             driver.times.forEach((time, idx) => {
-                chartData.push({
-                    team: team.name,
-                    driver: driver.name,
-                    race: races[idx],
-                    time: time,
-                    isBest: driver.bestTimes[idx],
-                    raceIndex: idx,
-                    cssClass: team.cssClass
-                });
+                if (time > 0) { // Only include valid times (not DNFs)
+                    chartData.push({
+                        team: team.name,
+                        driver: driver.name,
+                        race: races[idx],
+                        time: time,
+                        isBest: driver.bestTimes[idx],
+                        raceIndex: idx,
+                        cssClass: team.cssClass
+                    });
+                }
             });
         });
     });
@@ -350,9 +374,13 @@ function createVisualization() {
         .attr("transform", isMobile ? "rotate(-35)" : "rotate(-25)")
         .style("font-size", isMobile ? "8px" : "11px");
     
-    // Y axis
+    // Y axis - ensure we don't include 0 values in domain calculation
+    const validTimes = chartData.map(d => d.time);
+    const minTime = validTimes.length > 0 ? Math.max(70, Math.min(...validTimes) - 5) : 70;
+    const maxTime = validTimes.length > 0 ? Math.max(...validTimes) + 5 : 110;
+    
     const y = d3.scaleLinear()
-        .domain([70, d3.max(chartData, d => d.time) + 5])
+        .domain([minTime, maxTime])
         .range([height - margin.top - margin.bottom, 0]);
     
     svg.append("g")
@@ -392,32 +420,61 @@ function createVisualization() {
         .style("stroke", "#f1f1f1")
         .style("opacity", 0.7);
     
-    // Add lines
-    const lineGenerator = d3.line()
-        .x(d => x(d.race) + x.bandwidth() / 2)
-        .y(d => y(d.time))
-        .curve(d3.curveMonotoneX);
-    
+    // Add lines - special handling to not connect points with DNF in between
     teamsData.forEach(team => {
         const teamBestTimes = bestTimes.filter(d => d.team === team.name)
             .sort((a, b) => a.raceIndex - b.raceIndex);
         
-        svg.append("path")
-            .datum(teamBestTimes)
-            .attr("fill", "none")
-            .attr("stroke", color(team.name))
-            .attr("stroke-width", isMobile ? 2 : 3)
-            .attr("d", lineGenerator)
-            .style("opacity", 0)
-            .transition()
-            .duration(1000)
-            .style("opacity", 0.8);
+        // Custom line generator that handles disconnected segments
+        const lineSegments = [];
+        let currentSegment = [];
+        
+        // Group into continuous segments (for races with no DNFs)
+        for (let i = 0; i < races.length; i++) {
+            const point = teamBestTimes.find(d => d.raceIndex === i);
+            
+            if (point) {
+                // We have a valid point for this race
+                currentSegment.push(point);
+            } else if (currentSegment.length > 0) {
+                // No valid point - break the line
+                lineSegments.push([...currentSegment]);
+                currentSegment = [];
+            }
+        }
+        
+        // Add the last segment if it has points
+        if (currentSegment.length > 0) {
+            lineSegments.push(currentSegment);
+        }
+        
+        // Generate path for each segment
+        const lineGenerator = d3.line()
+            .x(d => x(d.race) + x.bandwidth() / 2)
+            .y(d => y(d.time))
+            .curve(d3.curveMonotoneX);
+        
+        lineSegments.forEach(segment => {
+            if (segment.length > 1) {
+                svg.append("path")
+                    .datum(segment)
+                    .attr("fill", "none")
+                    .attr("stroke", color(team.name))
+                    .attr("stroke-width", isMobile ? 2 : 3)
+                    .attr("d", lineGenerator)
+                    .style("opacity", 0)
+                    .transition()
+                    .duration(1000)
+                    .style("opacity", 0.8);
+            }
+        });
     });
     
-    // Add dots
-    svg.selectAll("circle")
+    // Add dots for best times
+    svg.selectAll(".best-time-dot")
         .data(bestTimes)
         .join("circle")
+        .attr("class", "best-time-dot")
         .attr("cx", d => x(d.race) + x.bandwidth() / 2)
         .attr("cy", d => y(d.time))
         .attr("r", 0)
@@ -429,13 +486,12 @@ function createVisualization() {
         .duration(1000)
         .attr("r", isMobile ? 4 : 6);
     
-    // Add team names
+    // Add team names if we have points for the last race
     if (!isMobile) {
-        const lastRace = bestTimes.filter(d => d.raceIndex === 4)
-            .sort((a, b) => a.team.localeCompare(b.team));
+        const lastRacePoints = bestTimes.filter(d => d.raceIndex === races.length - 1);
         
         svg.selectAll(".team-label")
-            .data(lastRace)
+            .data(lastRacePoints)
             .join("text")
             .attr("class", "team-label")
             .attr("x", d => x(d.race) + x.bandwidth() / 2 + 10)
@@ -476,7 +532,7 @@ function createVisualization() {
         .style("font-size", isMobile ? "10px" : "12px")
         .style("box-shadow", "0 2px 10px rgba(0,0,0,0.1)");
     
-    svg.selectAll("circle")
+    svg.selectAll(".best-time-dot")
         .on("mouseover", function(event, d) {
             d3.select(this)
                 .transition()
@@ -511,7 +567,7 @@ function createVisualization() {
         
     // Add touch event support for mobile
     if ('ontouchstart' in window) {
-        svg.selectAll("circle")
+        svg.selectAll(".best-time-dot")
             .on("touchstart", function(event, d) {
                 event.preventDefault();
                 d3.select(this)
