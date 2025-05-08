@@ -99,7 +99,6 @@ body {
 .team {
     background-color: white;
     border-radius: 8px;
-    overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
@@ -369,14 +368,12 @@ tr:hover {
     .driver-name {
         max-width: 80px;
         white-space: nowrap;
-        overflow: hidden;
         text-overflow: ellipsis;
     }
     
     .team-name {
         max-width: 100px;
         white-space: nowrap;
-        overflow: hidden;
         text-overflow: ellipsis;
     }
 
