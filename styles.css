@@ -134,12 +134,34 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+    background-color: white;
+}
+
+.table-scroll-hint {
+    display: none;
+    text-align: center;
+    padding: 5px;
+    font-size: 0.8rem;
+    color: #888;
+    background: rgba(255,255,255,0.9);
+    position: sticky;
+    bottom: 0;
+    width: 100%;
 }
 
 th, td {
     padding: 15px 20px;
     text-align: left;
     border-bottom: 1px solid #f1f1f1;
+    white-space: nowrap;
 }
 
 th {
@@ -331,9 +353,37 @@ tr:hover {
     font-weight: 600;
 }
 
-/* D3 Chart Styles */
-.f1-tooltip {
-    z-index: 100;
+/* Additional mobile improvements */
+.table-scroll-hint {
+    transition: opacity 0.5s ease;
+    opacity: 1;
+}
+
+@media (max-width: 800px) {
+    /* Handle overflow for results cards */
+    .results-card {
+        margin-bottom: 10px;
+    }
+
+    /* Ensure driver info is readable on small screens */
+    .driver-name {
+        max-width: 80px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .team-name {
+        max-width: 100px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Make touch targets larger */
+    .best-time-dot {
+        cursor: pointer;
+    }
 }
 
 /* Enhance responsive styles */
@@ -354,6 +404,7 @@ tr:hover {
     
     th, td {
         padding: 10px;
+        font-size: 0.9rem;
     }
     
     .f1-banner h1 {
@@ -362,10 +413,159 @@ tr:hover {
     
     .team-details {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
+        text-align: center;
     }
     
     .small-logo {
         margin-bottom: 10px;
+    }
+    
+    .f1-header {
+        padding: 10px;
+    }
+    
+    .f1-logo-container {
+        flex: 0 0 100px;
+    }
+    
+    .f1-banner p {
+        font-size: 1rem;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    .team {
+        border-radius: 6px;
+    }
+    
+    .team-name {
+        font-size: 1.5rem;
+    }
+    
+    .table-wrapper {
+        margin: 0 -10px;
+        width: calc(100% + 20px);
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        box-sizing: content-box;
+    }
+    
+    .table-scroll-hint {
+        display: block;
+    }
+    
+    .driver-number {
+        width: 20px;
+        height: 20px;
+        font-size: 0.8rem;
+    }
+    
+    .team-total {
+        font-size: 1rem;
+        text-align: center;
+    }
+    
+    .results-summary {
+        padding: 15px;
+    }
+    
+    .results-summary h2 {
+        font-size: 1.5rem;
+    }
+    
+    .results-card {
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    .team-details {
+        flex-direction: row;
+        align-items: center;
+        text-align: center;
+        justify-content: center;
+        flex: 0 0 100%;
+    }
+    
+    .small-logo {
+        margin-right: 10px;
+        margin-bottom: 0;
+    }
+    
+    .time-details {
+        margin-left: 0;
+        text-align: center;
+        flex: 0 0 100%;
+        order: 3;
+    }
+    
+    .position {
+        margin-right: 10px;
+        width: 30px;
+        height: 30px;
+        font-size: 1.2rem;
+        flex: 0 0 auto;
+    }
+    
+    .chart-container {
+        height: 300px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Small mobile screens */
+@media (max-width: 480px) {
+    .f1-banner h1 {
+        font-size: 1.5rem;
+    }
+    
+    .team-header {
+        padding: 10px;
+    }
+    
+    .team-total {
+        font-size: 0.9rem;
+    }
+    
+    th, td {
+        padding: 8px 5px;
+        font-size: 0.8rem;
+    }
+    
+    .results-card {
+        padding: 10px;
+    }
+    
+    .total-time {
+        font-size: 1rem;
+    }
+    
+    .position {
+        width: 25px;
+        height: 25px;
+        font-size: 1rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+    
+    .small-logo {
+        width: 30px;
+        height: 30px;
+    }
+    
+    /* Improve touch targets for mobile */
+    .driver-info, .position, .team-name {
+        padding: 5px;
+    }
+    
+    .f1-tooltip {
+        width: 180px;
+        font-size: 9px;
     }
 }
