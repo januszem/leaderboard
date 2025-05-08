@@ -300,8 +300,13 @@ function createVisualization() {
     d3.select("#chart-container").html("");
     
     const width = document.getElementById('chart-container').clientWidth;
-    const height = 350;
-    const margin = { top: 30, right: 30, bottom: 70, left: 80 };
+    const isMobile = window.innerWidth <= 800;
+    const height = isMobile ? 280 : 350;
+    
+    // Adjust margins for mobile
+    const margin = isMobile 
+        ? { top: 30, right: 15, bottom: 70, left: 50 } 
+        : { top: 30, right: 30, bottom: 70, left: 80 };
     
     const svg = d3.select("#chart-container")
         .append("svg")
@@ -342,7 +347,8 @@ function createVisualization() {
         .style("text-anchor", "end")
         .attr("dx", "-.8em")
         .attr("dy", ".15em")
-        .attr("transform", "rotate(-25)");
+        .attr("transform", isMobile ? "rotate(-35)" : "rotate(-25)")
+        .style("font-size", isMobile ? "8px" : "11px");
     
     // Y axis
     const y = d3.scaleLinear()
@@ -351,17 +357,21 @@ function createVisualization() {
     
     svg.append("g")
         .attr("class", "y-axis")
-        .call(d3.axisLeft(y).tickFormat(d => formatTime(d)));
+        .call(d3.axisLeft(y)
+            .tickFormat(d => formatTime(d))
+            .ticks(isMobile ? 5 : 8)); // Fewer ticks on mobile
     
     // Add title
-    svg.append("text")
-        .attr("x", (width - margin.left - margin.right) / 2)
-        .attr("y", -10)
-        .attr("text-anchor", "middle")
-        .style("font-size", "14px")
-        .style("font-weight", "600")
-        .style("fill", "#15151e")
-        .text("Best Lap Times by Race");
+    if (!isMobile) {
+        svg.append("text")
+            .attr("x", (width - margin.left - margin.right) / 2)
+            .attr("y", -10)
+            .attr("text-anchor", "middle")
+            .style("font-size", "14px")
+            .style("font-weight", "600")
+            .style("fill", "#15151e")
+            .text("Best Lap Times by Race");
+    }
     
     // Color scale
     const color = d3.scaleOrdinal()
@@ -377,6 +387,7 @@ function createVisualization() {
         .call(d3.axisLeft(y)
             .tickSize(-(width - margin.left - margin.right))
             .tickFormat("")
+            .ticks(isMobile ? 5 : 8)
         )
         .style("stroke", "#f1f1f1")
         .style("opacity", 0.7);
@@ -395,7 +406,7 @@ function createVisualization() {
             .datum(teamBestTimes)
             .attr("fill", "none")
             .attr("stroke", color(team.name))
-            .attr("stroke-width", 3)
+            .attr("stroke-width", isMobile ? 2 : 3)
             .attr("d", lineGenerator)
             .style("opacity", 0)
             .transition()
@@ -412,31 +423,33 @@ function createVisualization() {
         .attr("r", 0)
         .attr("fill", d => color(d.team))
         .style("stroke", "#ffffff")
-        .style("stroke-width", 2)
+        .style("stroke-width", isMobile ? 1 : 2)
         .transition()
         .delay((d, i) => i * 100)
         .duration(1000)
-        .attr("r", 6);
+        .attr("r", isMobile ? 4 : 6);
     
     // Add team names
-    const lastRace = bestTimes.filter(d => d.raceIndex === 4)
-        .sort((a, b) => a.team.localeCompare(b.team));
-    
-    svg.selectAll(".team-label")
-        .data(lastRace)
-        .join("text")
-        .attr("class", "team-label")
-        .attr("x", d => x(d.race) + x.bandwidth() / 2 + 10)
-        .attr("y", d => y(d.time))
-        .style("font-size", "12px")
-        .style("font-weight", "bold")
-        .style("fill", d => color(d.team))
-        .style("opacity", 0)
-        .text(d => d.team)
-        .transition()
-        .delay(1500)
-        .duration(500)
-        .style("opacity", 1);
+    if (!isMobile) {
+        const lastRace = bestTimes.filter(d => d.raceIndex === 4)
+            .sort((a, b) => a.team.localeCompare(b.team));
+        
+        svg.selectAll(".team-label")
+            .data(lastRace)
+            .join("text")
+            .attr("class", "team-label")
+            .attr("x", d => x(d.race) + x.bandwidth() / 2 + 10)
+            .attr("y", d => y(d.time))
+            .style("font-size", "12px")
+            .style("font-weight", "bold")
+            .style("fill", d => color(d.team))
+            .style("opacity", 0)
+            .text(d => d.team)
+            .transition()
+            .delay(1500)
+            .duration(500)
+            .style("opacity", 1);
+    }
     
     // Style axes
     svg.selectAll(".x-axis path, .y-axis path")
@@ -447,7 +460,7 @@ function createVisualization() {
         
     svg.selectAll(".x-axis text, .y-axis text")
         .style("fill", "#666")
-        .style("font-size", "11px");
+        .style("font-size", isMobile ? "8px" : "11px");
     
     // Add tooltip functionality
     const tooltip = d3.select("#chart-container")
@@ -460,7 +473,7 @@ function createVisualization() {
         .style("border-radius", "5px")
         .style("padding", "10px")
         .style("color", "#15151e")
-        .style("font-size", "12px")
+        .style("font-size", isMobile ? "10px" : "12px")
         .style("box-shadow", "0 2px 10px rgba(0,0,0,0.1)");
     
     svg.selectAll("circle")
@@ -468,7 +481,7 @@ function createVisualization() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("r", 9);
+                .attr("r", isMobile ? 6 : 9);
             
             tooltip
                 .style("visibility", "visible")
@@ -491,10 +504,47 @@ function createVisualization() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("r", 6);
+                .attr("r", isMobile ? 4 : 6);
             
             tooltip.style("visibility", "hidden");
         });
+        
+    // Add touch event support for mobile
+    if ('ontouchstart' in window) {
+        svg.selectAll("circle")
+            .on("touchstart", function(event, d) {
+                event.preventDefault();
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr("r", 6);
+                
+                tooltip
+                    .style("visibility", "visible")
+                    .html(`
+                        <div style="font-weight: 700; color: ${color(d.team)};">${d.team}</div>
+                        <div style="margin: 5px 0;">
+                            <span style="font-weight: 600;">Driver:</span> ${d.driver}
+                        </div>
+                        <div style="margin: 5px 0;">
+                            <span style="font-weight: 600;">Race:</span> ${d.race}
+                        </div>
+                        <div style="font-weight: 700; margin-top: 5px;">
+                            Time: ${formatTime(d.time)}
+                        </div>
+                    `)
+                    .style("left", (event.touches[0].pageX + 10) + "px")
+                    .style("top", (event.touches[0].pageY - 20) + "px");
+            })
+            .on("touchend", function() {
+                d3.select(this)
+                    .transition()
+                    .duration(200)
+                    .attr("r", 4);
+                
+                tooltip.style("visibility", "hidden");
+            });
+    }
 }
 
 // Initialize
