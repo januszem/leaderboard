@@ -1,17 +1,17 @@
 // Race data
 const races = [
-    "Monaco GP",
-    "Silverstone",
-    "Monza", 
-    "Singapore", 
-    "Suzuka"
+    "A1",
+    "Blue",
+    "White", 
+    "Red", 
+    "Green",
 ];
 
 // Driver data with their times (in seconds)
 const driversData = {
     mercedes: [
         {
-            name: "Lewis Hamilton",
+            name: "MJ",
             number: 44,
             times: [
                 1.000, // Times will be generated randomly at runtime
@@ -258,18 +258,21 @@ function renderData() {
                 <h2 class="team-name ${team.cssClass}">${team.name}</h2>
             </div>
             
-            <table>
-                <thead>
-                    <tr>
-                        <th>Driver</th>
-                        ${races.map(race => `<th>${race}</th>`).join('')}
-                        <th>Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${driverRows}
-                </tbody>
-            </table>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Driver</th>
+                            ${races.map(race => `<th>${race}</th>`).join('')}
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${driverRows}
+                    </tbody>
+                </table>
+                <div class="table-scroll-hint">← Scroll →</div>
+            </div>
             
             <div class="team-total ${team.isWinner ? 'winner' : ''}">
                 Total Team Time: ${formatTime(team.totalTime)} ${team.isWinner ? '🏆 WINNERS!' : ''}
@@ -312,8 +315,27 @@ function renderData() {
         </div>
     `;
     
+    // Check and indicate if tables are scrollable
+    checkTableScrollability();
+    
     // Create visualization with D3
     createVisualization();
+}
+
+// Function to check if tables are scrollable and show/hide the hint accordingly
+function checkTableScrollability() {
+    const tableWrappers = document.querySelectorAll('.table-wrapper');
+    tableWrappers.forEach(wrapper => {
+        const table = wrapper.querySelector('table');
+        const hint = wrapper.querySelector('.table-scroll-hint');
+        
+        // Show hint only if table is wider than its container
+        if (table.scrollWidth > wrapper.clientWidth) {
+            hint.style.display = 'block';
+        } else {
+            hint.style.display = 'none';
+        }
+    });
 }
 
 // Create visualization using D3.js
@@ -327,7 +349,7 @@ function createVisualization() {
     
     // Adjust margins for mobile
     const margin = isMobile 
-        ? { top: 30, right: 15, bottom: 70, left: 50 } 
+        ? { top: 30, right: 20, bottom: 70, left: 40 } 
         : { top: 30, right: 30, bottom: 70, left: 80 };
     
     const svg = d3.select("#chart-container")
@@ -371,7 +393,7 @@ function createVisualization() {
         .style("text-anchor", "end")
         .attr("dx", "-.8em")
         .attr("dy", ".15em")
-        .attr("transform", isMobile ? "rotate(-35)" : "rotate(-25)")
+        .attr("transform", isMobile ? "rotate(-40)" : "rotate(-25)")
         .style("font-size", isMobile ? "8px" : "11px");
     
     // Y axis - ensure we don't include 0 values in domain calculation
@@ -387,7 +409,7 @@ function createVisualization() {
         .attr("class", "y-axis")
         .call(d3.axisLeft(y)
             .tickFormat(d => formatTime(d))
-            .ticks(isMobile ? 5 : 8)); // Fewer ticks on mobile
+            .ticks(isMobile ? 4 : 8)); // Fewer ticks on mobile
     
     // Add title
     if (!isMobile) {
@@ -415,7 +437,7 @@ function createVisualization() {
         .call(d3.axisLeft(y)
             .tickSize(-(width - margin.left - margin.right))
             .tickFormat("")
-            .ticks(isMobile ? 5 : 8)
+            .ticks(isMobile ? 4 : 8)
         )
         .style("stroke", "#f1f1f1")
         .style("opacity", 0.7);
@@ -484,9 +506,9 @@ function createVisualization() {
         .transition()
         .delay((d, i) => i * 100)
         .duration(1000)
-        .attr("r", isMobile ? 4 : 6);
+        .attr("r", isMobile ? 5 : 6);
     
-    // Add team names if we have points for the last race
+    // Add team names if we have points for the last race and not on mobile
     if (!isMobile) {
         const lastRacePoints = bestTimes.filter(d => d.raceIndex === races.length - 1);
         
@@ -530,14 +552,16 @@ function createVisualization() {
         .style("padding", "10px")
         .style("color", "#15151e")
         .style("font-size", isMobile ? "10px" : "12px")
-        .style("box-shadow", "0 2px 10px rgba(0,0,0,0.1)");
+        .style("box-shadow", "0 2px 10px rgba(0,0,0,0.1)")
+        .style("z-index", "1000")
+        .style("max-width", isMobile ? "200px" : "auto");
     
     svg.selectAll(".best-time-dot")
         .on("mouseover", function(event, d) {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("r", isMobile ? 6 : 9);
+                .attr("r", isMobile ? 8 : 9);
             
             tooltip
                 .style("visibility", "visible")
@@ -552,28 +576,65 @@ function createVisualization() {
                     <div style="font-weight: 700; margin-top: 5px;">
                         Time: ${formatTime(d.time)}
                     </div>
-                `)
-                .style("left", (event.pageX + 10) + "px")
-                .style("top", (event.pageY - 20) + "px");
+                `);
+                
+            // Position the tooltip based on available space
+            const tooltipNode = tooltip.node();
+            const tooltipRect = tooltipNode.getBoundingClientRect();
+            const chartRect = document.getElementById('chart-container').getBoundingClientRect();
+                
+            // Calculate positions
+            let left = event.pageX + 10;
+            let top = event.pageY - 20;
+                
+            // Ensure tooltip stays within the chart container horizontally
+            if (left + tooltipRect.width > chartRect.right) {
+                left = event.pageX - tooltipRect.width - 10;
+            }
+                
+            // Ensure tooltip stays within the chart container vertically
+            if (top + tooltipRect.height > chartRect.bottom) {
+                top = event.pageY - tooltipRect.height - 10;
+            }
+                
+            tooltip
+                .style("left", left + "px")
+                .style("top", top + "px");
         })
         .on("mouseout", function() {
             d3.select(this)
                 .transition()
                 .duration(200)
-                .attr("r", isMobile ? 4 : 6);
+                .attr("r", isMobile ? 5 : 6);
             
             tooltip.style("visibility", "hidden");
         });
         
-    // Add touch event support for mobile
+    // Add improved touch event support for mobile
     if ('ontouchstart' in window) {
+        // Clear any existing touch events to prevent duplications
+        svg.selectAll(".best-time-dot")
+            .on("touchstart", null)
+            .on("touchend", null);
+        
         svg.selectAll(".best-time-dot")
             .on("touchstart", function(event, d) {
                 event.preventDefault();
+                
+                // Hide any previously visible tooltips
+                tooltip.style("visibility", "hidden");
+                
+                // Reset all dots to normal size
+                svg.selectAll(".best-time-dot")
+                    .transition()
+                    .duration(200)
+                    .attr("r", isMobile ? 5 : 6);
+                
+                // Enlarge this dot
                 d3.select(this)
                     .transition()
                     .duration(200)
-                    .attr("r", 6);
+                    .attr("r", 8);
                 
                 tooltip
                     .style("visibility", "visible")
@@ -588,17 +649,48 @@ function createVisualization() {
                         <div style="font-weight: 700; margin-top: 5px;">
                             Time: ${formatTime(d.time)}
                         </div>
-                    `)
-                    .style("left", (event.touches[0].pageX + 10) + "px")
-                    .style("top", (event.touches[0].pageY - 20) + "px");
-            })
-            .on("touchend", function() {
-                d3.select(this)
-                    .transition()
-                    .duration(200)
-                    .attr("r", 4);
+                    `);
                 
-                tooltip.style("visibility", "hidden");
+                // Position the tooltip appropriately for touch
+                const touch = event.touches[0];
+                const tooltipNode = tooltip.node();
+                const tooltipRect = tooltipNode.getBoundingClientRect();
+                const chartRect = document.getElementById('chart-container').getBoundingClientRect();
+                
+                // Calculate positions with better touch positioning
+                let left = touch.pageX - (tooltipRect.width / 2);
+                let top = touch.pageY - tooltipRect.height - 20;
+                
+                // Ensure tooltip stays within the chart container
+                if (left < chartRect.left) {
+                    left = chartRect.left + 5;
+                } else if (left + tooltipRect.width > chartRect.right) {
+                    left = chartRect.right - tooltipRect.width - 5;
+                }
+                
+                if (top < chartRect.top) {
+                    top = touch.pageY + 20; // Position below the finger
+                }
+                
+                tooltip
+                    .style("left", left + "px")
+                    .style("top", top + "px");
+            });
+            
+        // Add a tap-away listener to dismiss tooltip
+        d3.select("body")
+            .on("touchstart", function(event) {
+                // Check if the touch is not on a dot
+                const isOnDot = d3.select(event.target).classed("best-time-dot");
+                if (!isOnDot) {
+                    // Reset all dots and hide tooltip
+                    svg.selectAll(".best-time-dot")
+                        .transition()
+                        .duration(200)
+                        .attr("r", isMobile ? 5 : 6);
+                    
+                    tooltip.style("visibility", "hidden");
+                }
             });
     }
 }
@@ -609,5 +701,26 @@ document.addEventListener('DOMContentLoaded', () => {
     renderData();
     
     // Add responsive behavior for chart
-    window.addEventListener('resize', createVisualization);
+    window.addEventListener('resize', () => {
+        createVisualization();
+        checkTableScrollability();
+    });
+    
+    // Add horizontal scrolling hint listener
+    if ('ontouchstart' in window) {
+        const tableWrappers = document.querySelectorAll('.table-wrapper');
+        tableWrappers.forEach(wrapper => {
+            // Fade out scroll hint after first scroll
+            wrapper.addEventListener('scroll', function scrollHandler() {
+                const hint = wrapper.querySelector('.table-scroll-hint');
+                setTimeout(() => {
+                    hint.style.opacity = '0.5';
+                    setTimeout(() => {
+                        hint.style.opacity = '0';
+                    }, 1000);
+                }, 500);
+                wrapper.removeEventListener('scroll', scrollHandler);
+            });
+        });
+    }
 });
