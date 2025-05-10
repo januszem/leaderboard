@@ -14,7 +14,7 @@ const driversData = {
             name: "MJ",
             number: 44,
             times: [
-                1.000, // Times will be generated randomly at runtime
+                3.000, // Times will be generated randomly at runtime
                 1.000,
                 1.000,
                 1.000,
@@ -26,7 +26,7 @@ const driversData = {
             number: 63,
             times: [
                 0.000, // Times will be generated randomly at runtime
-                0.000,
+                23.000,
                 0.000,
                 0.000,
                 0.000
@@ -180,6 +180,12 @@ function generateRaceData() {
             
             // Count number of DNFs
             driver.dnfCount = driver.times.filter(time => time === 0).length;
+            
+            // Initialize points array
+            driver.points = new Array(races.length).fill(0);
+            
+            // Initialize total points
+            driver.totalPoints = 0;
         });
         
         // Calculate team totals
@@ -217,6 +223,49 @@ function generateRaceData() {
     const winner = teamsData.reduce((a, b) => a.totalTime < b.totalTime ? a : b);
     teamsData.forEach(team => {
         team.isWinner = team.name === winner.name;
+    });
+    
+    // Calculate points for each race (10 points for fastest, 1 for slowest, 0 for DNF)
+    races.forEach((race, raceIndex) => {
+        // Get all drivers from all teams
+        const allDrivers = teamsData.flatMap(team => team.drivers);
+        
+        // Get all valid times for this race
+        const validRaceTimes = allDrivers
+            .filter(driver => driver.times[raceIndex] > 0)
+            .map(driver => ({
+                driver: driver,
+                time: driver.times[raceIndex]
+            }));
+        
+        // Sort times from fastest to slowest
+        validRaceTimes.sort((a, b) => a.time - b.time);
+        
+        // Assign points based on position (10 for fastest, 9 for second, etc.)
+        validRaceTimes.forEach((entry, index) => {
+            // Calculate points (10 points for 1st place, down to 1 point for 10th place)
+            const points = Math.max(10 - index, 1); // Minimum 1 point for finishing
+            
+            // Assign points
+            entry.driver.points[raceIndex] = points;
+        });
+        
+        // Calculate total points for each driver
+        allDrivers.forEach(driver => {
+            driver.totalPoints = driver.points.reduce((sum, p) => sum + p, 0);
+        });
+    });
+    
+    // Calculate total points for each team
+    teamsData.forEach(team => {
+        // Sum of all driver points in the team
+        team.totalPoints = team.drivers.reduce((sum, driver) => sum + driver.totalPoints, 0);
+    });
+    
+    // Determine the points winner
+    const pointsWinner = teamsData.reduce((a, b) => a.totalPoints > b.totalPoints ? a : b);
+    teamsData.forEach(team => {
+        team.isPointsWinner = team.name === pointsWinner.name;
     });
 }
 
@@ -273,10 +322,7 @@ function renderData() {
                 </table>
                 <div class="table-scroll-hint">← Scroll →</div>
             </div>
-            
-            <div class="team-total ${team.isWinner ? 'winner' : ''}">
-                Total Team Time: ${formatTime(team.totalTime)} ${team.isWinner ? '🏆 WINNERS!' : ''}
-            </div>
+        
         `;
         
         teamsContainer.appendChild(teamElement);
@@ -318,8 +364,137 @@ function renderData() {
     // Check and indicate if tables are scrollable
     checkTableScrollability();
     
+    // Render the drivers points table
+    renderDriversPointsTable();
+    
+    // Render the team championship standings
+    renderTeamChampionship();
+    
     // Create visualization with D3
     createVisualization();
+}
+
+// Function to render the drivers points table
+function renderDriversPointsTable() {
+    const container = document.querySelector('.container');
+    const resultsSection = document.querySelector('.results-summary');
+    
+    // Get all drivers from all teams
+    const allDrivers = teamsData.flatMap(team => {
+        // Add team info to each driver
+        return team.drivers.map(driver => ({
+            ...driver,
+            team: team.name,
+            cssClass: team.cssClass
+        }));
+    });
+    
+    // Sort drivers by total points (descending)
+    allDrivers.sort((a, b) => b.totalPoints - a.totalPoints);
+    
+    // Create the points table element
+    const pointsTableElement = document.createElement('div');
+    pointsTableElement.className = 'points-table-container';
+    pointsTableElement.id = 'points-table-container';
+    
+    // Table with driver positions
+    let driverRows = '';
+    
+    allDrivers.forEach((driver, index) => {
+        driverRows += `
+            <tr>
+                <td>
+                    <div class="driver-info">
+                        <span class="driver-number">${driver.number}</span>
+                        <span class="driver-name ${driver.cssClass}">${driver.name}</span>
+                        <span class="driver-team">${driver.team}</span>
+                    </div>
+                </td>
+                ${driver.points.map((points, idx) => `
+                    <td class="driver-points">${points}</td>
+                `).join('')}
+                <td class="driver-total-points">${driver.totalPoints}</td>
+            </tr>
+        `;
+    });
+    
+    pointsTableElement.innerHTML = `
+        <div class="points-table-header">
+            <h2>Drivers Championship Points</h2>
+        </div>
+        
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Driver</th>
+                        ${races.map(race => `<th>${race}</th>`).join('')}
+                        <th>Total Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${driverRows}
+                </tbody>
+            </table>
+            <div class="table-scroll-hint">← Scroll →</div>
+        </div>
+    `;
+    
+    // Insert the points table before the results section
+    container.insertBefore(pointsTableElement, resultsSection);
+    
+    // Check scroll hint for this new table
+    checkTableScrollability();
+}
+
+// Function to render the team championship standings
+function renderTeamChampionship() {
+    const container = document.querySelector('.container');
+    const resultsSection = document.querySelector('.results-summary');
+    
+    // Sort teams by total points (descending)
+    const sortedTeams = [...teamsData].sort((a, b) => b.totalPoints - a.totalPoints);
+    
+    // Create the team championship element
+    const teamChampionshipElement = document.createElement('div');
+    teamChampionshipElement.className = 'team-championship-container';
+    
+    // Prepare the team rankings
+    let teamRankings = '';
+    
+    sortedTeams.forEach((team, index) => {
+        const isWinner = team.isPointsWinner;
+        const position = index + 1;
+        
+        teamRankings += `
+            <div class="results-card ${isWinner ? 'winner-card' : ''}">
+                <div class="position">${position}</div>
+                <div class="team-details">
+                    <img src="${team.logo}" alt="${team.name}" class="small-logo">
+                    <div class="team-name ${team.cssClass}">${team.name}</div>
+                </div>
+                <div class="points-details">
+                    <div class="total-points">${team.totalPoints} PTS</div>
+                    ${position > 1 ? `<div class="points-delta">-${sortedTeams[0].totalPoints - team.totalPoints} points</div>` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    teamChampionshipElement.innerHTML = `
+        <div class="team-championship-header">
+            <h2>Team Championship</h2>
+            <p class="championship-description">Based on total driver points</p>
+        </div>
+        
+        <div class="f1-results">
+            ${teamRankings}
+        </div>
+    `;
+    
+    // Insert the team championship table after the points table
+    const pointsTable = document.getElementById('points-table-container');
+    container.insertBefore(teamChampionshipElement, resultsSection);
 }
 
 // Function to check if tables are scrollable and show/hide the hint accordingly
@@ -329,8 +504,9 @@ function checkTableScrollability() {
         const table = wrapper.querySelector('table');
         const hint = wrapper.querySelector('.table-scroll-hint');
         
-        // Show hint only if table is wider than its container
+        // Only check for horizontal scrolling
         if (table.scrollWidth > wrapper.clientWidth) {
+            hint.textContent = "← Scroll horizontally →";
             hint.style.display = 'block';
         } else {
             hint.style.display = 'none';
@@ -708,18 +884,22 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Add horizontal scrolling hint listener
     if ('ontouchstart' in window) {
-        const tableWrappers = document.querySelectorAll('.table-wrapper');
-        tableWrappers.forEach(wrapper => {
-            // Fade out scroll hint after first scroll
-            wrapper.addEventListener('scroll', function scrollHandler() {
-                const hint = wrapper.querySelector('.table-scroll-hint');
-                setTimeout(() => {
-                    hint.style.opacity = '0.5';
-                    setTimeout(() => {
-                        hint.style.opacity = '0';
-                    }, 1000);
-                }, 500);
-                wrapper.removeEventListener('scroll', scrollHandler);
+        document.addEventListener('click', () => {
+            const tableWrappers = document.querySelectorAll('.table-wrapper');
+            tableWrappers.forEach(wrapper => {
+                // Fade out scroll hint after first scroll
+                wrapper.addEventListener('scroll', function scrollHandler() {
+                    const hint = wrapper.querySelector('.table-scroll-hint');
+                    if (hint) {
+                        setTimeout(() => {
+                            hint.style.opacity = '0.5';
+                            setTimeout(() => {
+                                hint.style.opacity = '0';
+                            }, 1000);
+                        }, 500);
+                        wrapper.removeEventListener('scroll', scrollHandler);
+                    }
+                });
             });
         });
     }
