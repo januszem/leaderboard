@@ -11,32 +11,10 @@ const races = [
 const driversData = {
     mercedes: [
         {
-            name: "MJ",
+            name: "Matias",
             number: 44,
             times: [
-                3.000, // Times will be generated randomly at runtime
-                1.000,
-                1.000,
-                1.000,
-                1.000
-            ]
-        },
-        {
-            name: "George Russell",
-            number: 63,
-            times: [
-                0.000, // Times will be generated randomly at runtime
-                23.000,
-                0.000,
-                0.000,
-                0.000
-            ]
-        },
-        {
-            name: "Valtteri Bottas",
-            number: 77,
-            times: [
-                0.000, // Times will be generated randomly at runtime
+                49.427, // Times will be generated randomly at runtime
                 0.000,
                 0.000,
                 0.000,
@@ -44,8 +22,19 @@ const driversData = {
             ]
         },
         {
-            name: "Esteban Ocon",
-            number: 31,
+            name: "Fifi Flöy",
+            number: 4,
+            times: [
+                51.961, // Times will be generated randomly at runtime
+                0.000,
+                0.000,
+                0.000,
+                0.000
+            ]
+        },
+        {
+            name: "Magdalenka",
+            number: 1,
             times: [
                 0.000, // Times will be generated randomly at runtime
                 0.000,
@@ -55,10 +44,21 @@ const driversData = {
             ]
         },
         {
-            name: "Andrea Kimi Antonelli",
+            name: "Kristian",
+            number: 69,
+            times: [
+                50.372, // Times will be generated randomly at runtime
+                0.000,
+                0.000,
+                0.000,
+                0.000
+            ]
+        },
+        {
+            name: "Fifi Charlie",
             number: 87,
             times: [
-                0.000, // Times will be generated randomly at runtime
+                51.681, // Times will be generated randomly at runtime
                 0.000,
                 0.000,
                 0.000,
@@ -68,21 +68,21 @@ const driversData = {
     ],
     redBull: [
         {
-            name: "Max Verstappen",
-            number: 1,
+            name: "Izabel",
+            number: 16,
             times: [
-                1.000, // Times will be generated randomly at runtime
-                1.000,
-                1.000,
-                1.000,
-                1.000
+                55.653, // Times will be generated randomly at runtime
+                0.000,
+                0.000,
+                0.000,
+                0.000
             ]
         },
         {
-            name: "Sergio Perez",
+            name: "Caroline",
             number: 11,
             times: [
-                0.000, // Times will be generated randomly at runtime
+                72.857, // Times will be generated randomly at runtime
                 0.000,
                 0.000,
                 0.000,
@@ -90,10 +90,10 @@ const driversData = {
             ]
         },
         {
-            name: "Daniel Ricciardo",
+            name: "Dominique",
             number: 3,
             times: [
-                0.000, // Times will be generated randomly at runtime
+                51.682, // Times will be generated randomly at runtime
                 0.000,
                 0.000,
                 0.000,
@@ -101,10 +101,10 @@ const driversData = {
             ]
         },
         {
-            name: "Yuki Tsunoda",
+            name: "Alexandra",
             number: 22,
             times: [
-                0.000, // Times will be generated randomly at runtime
+                63.549, // Times will be generated randomly at runtime
                 0.000,
                 0.000,
                 0.000,
@@ -112,10 +112,10 @@ const driversData = {
             ]
         },
         {
-            name: "Liam Lawson",
-            number: 15,
+            name: "Rafael",
+            number: 94,
             times: [
-                0.000, // Times will be generated randomly at runtime
+                51.820, // Times will be generated randomly at runtime
                 0.000,
                 0.000,
                 0.000,
