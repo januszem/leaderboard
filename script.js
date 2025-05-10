@@ -16,7 +16,7 @@ const driversData = {
             times: [
                 49.427, // Times will be generated randomly at runtime
                 24.356,
-                0.000,
+                15.878,
                 0.000,
                 0.000
             ]
@@ -27,7 +27,7 @@ const driversData = {
             times: [
                 51.961, // Times will be generated randomly at runtime
                 24.988,
-                0.000,
+                16.623,
                 0.000,
                 0.000
             ]
@@ -38,7 +38,7 @@ const driversData = {
             times: [
                 0.000, // Times will be generated randomly at runtime
                 26.347,
-                0.000,
+                16.410,
                 0.000,
                 0.000
             ]
@@ -49,7 +49,7 @@ const driversData = {
             times: [
                 50.372, // Times will be generated randomly at runtime
                 24.771,
-                0.000,
+                15.856,
                 0.000,
                 0.000
             ]
@@ -60,7 +60,7 @@ const driversData = {
             times: [
                 51.681, // Times will be generated randomly at runtime
                 24.284,
-                0.000,
+                16.177,
                 0.000,
                 0.000
             ]
@@ -73,7 +73,7 @@ const driversData = {
             times: [
                 55.653, // Times will be generated randomly at runtime
                 26.860,
-                0.000,
+                16.355,
                 0.000,
                 0.000
             ]
@@ -84,7 +84,7 @@ const driversData = {
             times: [
                 72.857, // Times will be generated randomly at runtime
                 28.470,
-                0.000,
+                17.091,
                 0.000,
                 0.000
             ]
@@ -95,7 +95,7 @@ const driversData = {
             times: [
                 51.682, // Times will be generated randomly at runtime
                 28.598,
-                0.000,
+                19.244,
                 0.000,
                 0.000
             ]
@@ -106,7 +106,7 @@ const driversData = {
             times: [
                 63.549, // Times will be generated randomly at runtime
                 26.911,
-                0.000,
+                17.247,
                 0.000,
                 0.000
             ]
@@ -117,7 +117,7 @@ const driversData = {
             times: [
                 51.820, // Times will be generated randomly at runtime
                 24.478,
-                0.000,
+                15.744,
                 0.000,
                 0.000
             ]
