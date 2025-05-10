@@ -1,7 +1,7 @@
 // Race data
 const races = [
     "A1",
-    "Blue",
+    "White 1",
     "White", 
     "Red", 
     "Green",
@@ -15,7 +15,7 @@ const driversData = {
             number: 44,
             times: [
                 49.427, // Times will be generated randomly at runtime
-                0.000,
+                24.356,
                 0.000,
                 0.000,
                 0.000
@@ -26,7 +26,7 @@ const driversData = {
             number: 4,
             times: [
                 51.961, // Times will be generated randomly at runtime
-                0.000,
+                24.988,
                 0.000,
                 0.000,
                 0.000
@@ -37,7 +37,7 @@ const driversData = {
             number: 1,
             times: [
                 0.000, // Times will be generated randomly at runtime
-                0.000,
+                26.347,
                 0.000,
                 0.000,
                 0.000
@@ -48,7 +48,7 @@ const driversData = {
             number: 69,
             times: [
                 50.372, // Times will be generated randomly at runtime
-                0.000,
+                24.771,
                 0.000,
                 0.000,
                 0.000
@@ -59,7 +59,7 @@ const driversData = {
             number: 87,
             times: [
                 51.681, // Times will be generated randomly at runtime
-                0.000,
+                24.284,
                 0.000,
                 0.000,
                 0.000
@@ -72,7 +72,7 @@ const driversData = {
             number: 16,
             times: [
                 55.653, // Times will be generated randomly at runtime
-                0.000,
+                26.860,
                 0.000,
                 0.000,
                 0.000
@@ -83,7 +83,7 @@ const driversData = {
             number: 11,
             times: [
                 72.857, // Times will be generated randomly at runtime
-                0.000,
+                28.470,
                 0.000,
                 0.000,
                 0.000
@@ -94,7 +94,7 @@ const driversData = {
             number: 3,
             times: [
                 51.682, // Times will be generated randomly at runtime
-                0.000,
+                28.598,
                 0.000,
                 0.000,
                 0.000
@@ -105,7 +105,7 @@ const driversData = {
             number: 22,
             times: [
                 63.549, // Times will be generated randomly at runtime
-                0.000,
+                26.911,
                 0.000,
                 0.000,
                 0.000
@@ -116,7 +116,7 @@ const driversData = {
             number: 94,
             times: [
                 51.820, // Times will be generated randomly at runtime
-                0.000,
+                24.478,
                 0.000,
                 0.000,
                 0.000
